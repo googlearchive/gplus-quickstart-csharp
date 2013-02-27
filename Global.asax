@@ -1,0 +1,1 @@
+﻿<%@ Application Codebehind="Global.asax.cs" Inherits="GPlus_ServerSideFlow.Global" Language="C#" %>
