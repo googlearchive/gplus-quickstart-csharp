@@ -94,7 +94,7 @@ namespace GPlus_ServerSideFlow
             // using index.html as a template.
             if (context.Request.Path.Equals("/signin.ashx"))
             {
-                String state = (String)context.Session["state"]; ;
+                String state = (String)context.Session["state"];
 
                 // Store a random string in the session for verifying
                 // the responses in our OAuth2 flow.
