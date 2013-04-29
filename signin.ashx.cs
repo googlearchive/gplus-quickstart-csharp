@@ -139,7 +139,6 @@ namespace GPlus_ServerSideFlow
                     string code = sr.ReadToEnd();
 
                     string state = context.Request["state"];
-                    string userid = context.Request["gplus_id"];
 
                     // Test that the request state matches the session state.
                     if (!state.Equals(context.Session["state"]))
@@ -152,26 +151,27 @@ namespace GPlus_ServerSideFlow
                     var authObject = ManualCodeExchanger.ExchangeCode(code);
 
                     // Create an authorization state from the returned token.
-                    _authState = CreateState(
+                    context.Session["authState"] = CreateState(
                         authObject.access_token, authObject.refresh_token,
                         DateTime.UtcNow,
                         DateTime.UtcNow.AddSeconds(authObject.expires_in));
 
-                    // Use Tokeninfo to validate the user and the client.
-                    var tokeninfo_request = new Oauth2Service().Tokeninfo();
-                    tokeninfo_request.Access_token = _authState.AccessToken;
-                    var tokeninfo = tokeninfo_request.Fetch();
-                    if (userid == tokeninfo.User_id
-                        && tokeninfo.Issued_to == CLIENT_ID)
+                    string id_token = authObject.id_token;
+                    string[] segments = id_token.Split('.');
+
+                    string base64EncoodedJsonBody = segments[1];
+                    int mod4 = base64EncoodedJsonBody.Length % 4;
+                    if ( mod4 > 0 )
                     {
-                        context.Session["authState"] = _authState;
+                        base64EncoodedJsonBody += new string( '=', 4 - mod4 );
                     }
-                    else
-                    {
-                        // The credentials did not match.
-                        context.Response.StatusCode = 401;
-                        return;
-                    }
+                    byte[] encodedBodyAsBytes =
+                        System.Convert.FromBase64String(base64EncoodedJsonBody);
+                    string json_body =
+                        System.Text.Encoding.UTF8.GetString(encodedBodyAsBytes);
+                    IDTokenJsonBodyObject bodyObject =
+                        JsonConvert.DeserializeObject<IDTokenJsonBodyObject>(json_body);
+                    string gplus_id = bodyObject.sub;
                 }
                 else
                 {
@@ -336,5 +336,20 @@ namespace GPlus_ServerSideFlow
         }
 
         public bool IsReusable { get { return false; } }
+    }
+
+    /// <summary>
+    /// Encapsulates JSON data for ID token body.
+    /// </summary>
+    public class IDTokenJsonBodyObject
+    {
+        public string iss;
+        public string aud;
+        public string at_hash;
+        public string azp;
+        public string c_hash;
+        public string sub;
+        public int iat;
+        public int exp;
     }
 }
