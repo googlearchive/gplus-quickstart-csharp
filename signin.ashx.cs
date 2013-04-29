@@ -155,6 +155,23 @@ namespace GPlus_ServerSideFlow
                         authObject.access_token, authObject.refresh_token,
                         DateTime.UtcNow,
                         DateTime.UtcNow.AddSeconds(authObject.expires_in));
+
+                    string id_token = authObject.id_token;
+                    string[] segments = id_token.Split('.');
+
+                    string base64EncoodedJsonBody = segments[1];
+                    int mod4 = base64EncoodedJsonBody.Length % 4;
+                    if ( mod4 > 0 )
+                    {
+                        base64EncoodedJsonBody += new string( '=', 4 - mod4 );
+                    }
+                    byte[] encodedBodyAsBytes =
+                        System.Convert.FromBase64String(base64EncoodedJsonBody);
+                    string json_body =
+                        System.Text.Encoding.UTF8.GetString(encodedBodyAsBytes);
+                    IDTokenJsonBodyObject bodyObject =
+                        JsonConvert.DeserializeObject<IDTokenJsonBodyObject>(json_body);
+                    string gplus_id = bodyObject.sub;
                 }
                 else
                 {
@@ -319,5 +336,20 @@ namespace GPlus_ServerSideFlow
         }
 
         public bool IsReusable { get { return false; } }
+    }
+
+    /// <summary>
+    /// Encapsulates JSON data for ID token body.
+    /// </summary>
+    public class IDTokenJsonBodyObject
+    {
+        public string iss;
+        public string aud;
+        public string at_hash;
+        public string azp;
+        public string c_hash;
+        public string sub;
+        public int iat;
+        public int exp;
     }
 }
