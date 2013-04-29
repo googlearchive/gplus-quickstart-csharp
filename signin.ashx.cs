@@ -139,7 +139,6 @@ namespace GPlus_ServerSideFlow
                     string code = sr.ReadToEnd();
 
                     string state = context.Request["state"];
-                    string userid = context.Request["gplus_id"];
 
                     // Test that the request state matches the session state.
                     if (!state.Equals(context.Session["state"]))
@@ -152,26 +151,10 @@ namespace GPlus_ServerSideFlow
                     var authObject = ManualCodeExchanger.ExchangeCode(code);
 
                     // Create an authorization state from the returned token.
-                    _authState = CreateState(
+                    context.Session["authState"] = CreateState(
                         authObject.access_token, authObject.refresh_token,
                         DateTime.UtcNow,
                         DateTime.UtcNow.AddSeconds(authObject.expires_in));
-
-                    // Use Tokeninfo to validate the user and the client.
-                    var tokeninfo_request = new Oauth2Service().Tokeninfo();
-                    tokeninfo_request.Access_token = _authState.AccessToken;
-                    var tokeninfo = tokeninfo_request.Fetch();
-                    if (userid == tokeninfo.User_id
-                        && tokeninfo.Issued_to == CLIENT_ID)
-                    {
-                        context.Session["authState"] = _authState;
-                    }
-                    else
-                    {
-                        // The credentials did not match.
-                        context.Response.StatusCode = 401;
-                        return;
-                    }
                 }
                 else
                 {
