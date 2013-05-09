@@ -48,9 +48,6 @@
     <Reference Include="Google.Apis.Authentication.OAuth2">
       <HintPath>Services\Google.Apis.Authentication.OAuth2.dll</HintPath>
     </Reference>
-    <Reference Include="Google.Apis.Oauth2.v2">
-      <HintPath>Services\Google.Apis.Oauth2.v2.dll</HintPath>
-    </Reference>
     <Reference Include="Google.Apis.Plus.v1">
       <HintPath>Services\Google.Apis.Plus.v1.dll</HintPath>
     </Reference>
