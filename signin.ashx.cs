@@ -84,7 +84,7 @@ namespace GPlus_ServerSideFlow
         public void ProcessRequest(HttpContext context)
         {
             // Redirect base path to signin.
-            if (context.Request.Path.Equals("/"))
+            if (context.Request.Path.EndsWith("/"))
             {
                 context.Response.RedirectPermanent("signin.ashx");
             }
@@ -92,7 +92,7 @@ namespace GPlus_ServerSideFlow
 
             // This is reached when the root document is passed. Return HTML
             // using index.html as a template.
-            if (context.Request.Path.Equals("/signin.ashx"))
+            if (context.Request.Path.EndsWith("/signin.ashx"))
             {
                 String state = (String)context.Session["state"];
 
