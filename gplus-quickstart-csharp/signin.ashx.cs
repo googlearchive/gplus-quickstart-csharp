@@ -48,7 +48,7 @@ using DotNetOpenAuth.OAuth2;
 // For JSON parsing.
 using Newtonsoft.Json;
 
-namespace GPlus_ServerSideFlow
+namespace GPlusQuickstartCsharp
 {
     /// <summary>
     ///  This is a minimal implementation of Google+ Sign-In that
@@ -65,8 +65,8 @@ namespace GPlus_ServerSideFlow
     {
         // These come from the APIs console:
         //   https://code.google.com/apis/console
-        static public string CLIENT_ID = "YOUR_CLIENT_ID";
-        static public string CLIENT_SECRET = "YOUR_CLIENT_SECRET";
+        static public string CLIENT_ID = "671005127968.apps.googleusercontent.com";
+        static public string CLIENT_SECRET = "6ulX50puhwIP7xRFKOMpbAbW";
 
         // Configuration that you probably don't need to change.
         static public string APP_NAME = "Google+ C# Quickstart";

@@ -23,7 +23,7 @@ using System.Web.Routing;
 using System.Web.Security;
 using System.Web.SessionState;
 
-namespace GPlus_ServerSideFlow
+namespace GPlusQuickstartCsharp
 {
     /// <summary>
     /// Routes the sample endpoints to the handler.
