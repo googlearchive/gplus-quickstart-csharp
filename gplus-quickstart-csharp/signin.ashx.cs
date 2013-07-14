@@ -65,8 +65,8 @@ namespace GPlusQuickstartCsharp
     {
         // These come from the APIs console:
         //   https://code.google.com/apis/console
-        static public string CLIENT_ID = "671005127968.apps.googleusercontent.com";
-        static public string CLIENT_SECRET = "6ulX50puhwIP7xRFKOMpbAbW";
+        static public string CLIENT_ID = "YOUR_CLIENT_ID";
+        static public string CLIENT_SECRET = "YOUR_CLIENT_SECRET";
 
         // Configuration that you probably don't need to change.
         static public string APP_NAME = "Google+ C# Quickstart";
