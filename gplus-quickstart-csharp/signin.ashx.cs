@@ -48,7 +48,7 @@ using DotNetOpenAuth.OAuth2;
 // For JSON parsing.
 using Newtonsoft.Json;
 
-namespace GPlus_ServerSideFlow
+namespace GPlusQuickstartCsharp
 {
     /// <summary>
     ///  This is a minimal implementation of Google+ Sign-In that
@@ -179,6 +179,14 @@ namespace GPlus_ServerSideFlow
                     context.Response.StatusCode = 400;
                     return;
                 }
+            }
+            else if (context.Request.Path.Contains("/connect"))
+            {
+                // The user is already connected and credentials are cached.
+                context.Response.ContentType = "application/json";
+                context.Response.StatusCode = 200;
+                context.Response.Write(JsonConvert.SerializeObject("Current user is already connected."));
+                return;
             }
             else
             {

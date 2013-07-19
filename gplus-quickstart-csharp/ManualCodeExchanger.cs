@@ -30,7 +30,7 @@ using Google.Apis.Authentication.OAuth2;
 // Used to deserialize the OAuth response.
 using Newtonsoft.Json;
 
-namespace GPlus_ServerSideFlow
+namespace GPlusQuickstartCsharp
 {
     /// <summary>
     /// A utility class used to manually exchange an authorization code for
