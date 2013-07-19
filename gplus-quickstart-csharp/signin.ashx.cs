@@ -180,6 +180,14 @@ namespace GPlusQuickstartCsharp
                     return;
                 }
             }
+            else if (context.Request.Path.Contains("/connect"))
+            {
+                // The user is already connected and credentials are cached.
+                context.Response.ContentType = "application/json";
+                context.Response.StatusCode = 200;
+                context.Response.Write(JsonConvert.SerializeObject("Current user is already connected."));
+                return;
+            }
             else
             {
                 // Register the authenticator and construct the Plus service
