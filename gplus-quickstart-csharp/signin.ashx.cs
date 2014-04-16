@@ -18,35 +18,24 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-// For revocation and REST queries using HTTPRequest.
 using System.Net;
 using System.Web;
 using System.Web.Compilation;
-
-// For string manipulations used in the template and string building.
 using System.Text;
 using System.Text.RegularExpressions;
-
-// For mapping routes
 using System.Web.Routing;
 using System.Web.SessionState;
 
-// Generated libraries for Google APIs
-using Google.Apis.Authentication.OAuth2;
-using Google.Apis.Authentication.OAuth2.DotNetOpenAuth;
+using Newtonsoft.Json;
+
+using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Util;
-
 using Google.Apis.Plus.v1;
 using Google.Apis.Plus.v1.Data;
-
-// For OAuth2
-using DotNetOpenAuth.Messaging;
-using DotNetOpenAuth.OAuth2;
-
-// For JSON parsing.
-using Newtonsoft.Json;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Auth.OAuth2.Flows;
+using System.Threading;
 
 namespace GPlusQuickstartCsharp
 {
@@ -65,14 +54,17 @@ namespace GPlusQuickstartCsharp
     {
         // These come from the APIs console:
         //   https://code.google.com/apis/console
-        static public string CLIENT_ID = "YOUR_CLIENT_ID";
-        static public string CLIENT_SECRET = "YOUR_CLIENT_SECRET";
-
+        public static ClientSecrets secrets = new ClientSecrets()
+        {
+            ClientId = "YOUR_CLIENT_ID",
+            ClientSecret = "YOUR_CLIENT_SECRET"
+        };
+        
         // Configuration that you probably don't need to change.
         static public string APP_NAME = "Google+ C# Quickstart";
-
-        // Used internally by the OAuth client
-        private IAuthorizationState _authState;
+        
+        // Stores token response info such as the access token and refresh token.
+        private TokenResponse token; 
 
         // Used to peform API calls against Google+.
         private PlusService ps = null;
@@ -118,7 +110,7 @@ namespace GPlusQuickstartCsharp
                 templatedHTML = Regex.Replace(templatedHTML,
                     "[{]{2}\\s*APPLICATION_NAME\\s*[}]{2}", APP_NAME);
                 templatedHTML = Regex.Replace(templatedHTML,
-                    "[{]{2}\\s*CLIENT_ID\\s*[}]{2}", CLIENT_ID);
+                    "[{]{2}\\s*CLIENT_ID\\s*[}]{2}", secrets.ClientId);
                 templatedHTML = Regex.Replace(templatedHTML,
                     "[{]{2}\\s*STATE\\s*[}]{2}", state);
 
@@ -146,32 +138,23 @@ namespace GPlusQuickstartCsharp
                         context.Response.StatusCode = 401;
                         return;
                     }
+                    
+                    // Use the code exchange flow to get an access and refresh token.
+                    IAuthorizationCodeFlow flow =
+                        new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+                        {
+                            ClientSecrets = secrets,
+                            Scopes = new string[] { PlusService.Scope.PlusLogin }
+                        });
 
-                    // Manually perform the OAuth2 flow for now.
-                    var authObject = ManualCodeExchanger.ExchangeCode(code);
+                    token = flow.ExchangeCodeForTokenAsync("", code, "postmessage",
+                            CancellationToken.None).Result;
 
                     // Create an authorization state from the returned token.
-                    context.Session["authState"] = CreateState(
-                        authObject.access_token, authObject.refresh_token,
-                        DateTime.UtcNow,
-                        DateTime.UtcNow.AddSeconds(authObject.expires_in));
+                    context.Session["authState"] = token;
 
-                    string id_token = authObject.id_token;
-                    string[] segments = id_token.Split('.');
-
-                    string base64EncoodedJsonBody = segments[1];
-                    int mod4 = base64EncoodedJsonBody.Length % 4;
-                    if ( mod4 > 0 )
-                    {
-                        base64EncoodedJsonBody += new string( '=', 4 - mod4 );
-                    }
-                    byte[] encodedBodyAsBytes =
-                        System.Convert.FromBase64String(base64EncoodedJsonBody);
-                    string json_body =
-                        System.Text.Encoding.UTF8.GetString(encodedBodyAsBytes);
-                    IDTokenJsonBodyObject bodyObject =
-                        JsonConvert.DeserializeObject<IDTokenJsonBodyObject>(json_body);
-                    string gplus_id = bodyObject.sub;
+                    //TODO: Verify token                    
+                    
                 }
                 else
                 {
@@ -192,24 +175,24 @@ namespace GPlusQuickstartCsharp
             {
                 // Register the authenticator and construct the Plus service
                 // for performing API calls on behalf of the user.
-                _authState =
-                    (IAuthorizationState)context.Session["authState"];
-                AuthorizationServerDescription description =
-                    GoogleAuthenticationServer.Description;
-                var provider = new WebServerClient(description);
-                provider.ClientIdentifier = CLIENT_ID;
-                provider.ClientSecret = CLIENT_SECRET;
-                var authenticator =
-                    new OAuth2Authenticator<WebServerClient>(
-                        provider,
-                        GetAuthorization)
+                token = (TokenResponse)context.Session["authState"];
+                IAuthorizationCodeFlow flow =
+                    new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
                     {
-                        NoCaching = true
-                    };
-                ps = new PlusService(new BaseClientService.Initializer()
-                {
-                  Authenticator = authenticator
-                });
+                        ClientSecrets = secrets,
+                        Scopes = new string[] { PlusService.Scope.PlusLogin }
+                    });
+
+                UserCredential credential = new UserCredential(flow, "me", token);
+                bool success = credential.RefreshTokenAsync(CancellationToken.None).Result;
+
+                token = credential.Token;
+                ps = new PlusService(
+                    new Google.Apis.Services.BaseClientService.Initializer()
+                    {
+                        ApplicationName = "Haiku+",
+                        HttpClientInitializer = credential
+                    });
             }
 
             // Perform an authenticated API request to retrieve the list of
@@ -217,7 +200,8 @@ namespace GPlusQuickstartCsharp
             if (context.Request.Path.Contains("/people"))
             {
                 // Get the PeopleFeed for the currently authenticated user.
-                PeopleFeed pf = ps.People.List("me", PeopleResource.CollectionEnum.Visible).Fetch();
+                IList<Person> pf= ps.People.List("me", 
+                        PeopleResource.ListRequest.CollectionEnum.Visible).Execute().Items;
 
                 // This JSON, representing the people feed, will later be
                 // parsed by the JavaScript client.
@@ -234,10 +218,9 @@ namespace GPlusQuickstartCsharp
             {
                 // Perform a get request to the token endpoint to revoke the
                 // refresh token.
-                _authState =
-                    (IAuthorizationState)context.Session["authState"];
-                string token = (_authState.RefreshToken != null) ?
-                    _authState.RefreshToken : _authState.AccessToken;
+                token = (TokenResponse)context.Session["authState"];
+                string tokenToRevoke = (token.RefreshToken  != null) ?
+                    token.RefreshToken : token.AccessToken;
 
                 WebRequest request = WebRequest.Create(
                     "https://accounts.google.com/o/oauth2/revoke?token=" +
@@ -257,80 +240,6 @@ namespace GPlusQuickstartCsharp
             }
         }
 
-        // GetAuthorization
-        /// <summary>
-        /// Gets the authorization object for the client-side flow.
-        /// </summary>
-        /// <param name="client">The client used for authorization.
-        /// </param>
-        /// <returns>An authorization state that can be used for API queries.
-        /// </returns>
-        private IAuthorizationState GetAuthorization(WebServerClient client)
-        {
-            // If we don't yet have user, use the client to perform
-            // authorization.
-            if (_authState != null)
-            {
-                HttpRequestInfo reqinfo =
-                    new HttpRequestInfo(HttpContext.Current.Request);
-                client.ProcessUserAuthorization(reqinfo);
-            }
-
-            // Check for a cached session state.
-            if (_authState == null)
-            {
-                _authState = (IAuthorizationState)HttpContext.Current.
-                        Session["AUTH_STATE"];
-            }
-
-            // Check if we need to refresh the authorization state and refresh
-            // it if necessary.
-            if (_authState != null)
-            {
-                if (_authState.AccessToken == null ||
-                    DateTime.UtcNow > _authState.AccessTokenExpirationUtc)
-                {
-                    client.RefreshToken(_authState);
-                }
-                return _authState;
-            }
-
-            // If we fall through to here, perform an authorization request.
-            OutgoingWebResponse response =
-                client.PrepareRequestUserAuthorization(_authState.Scope);
-
-            response.Send();
-            // Note: response.send will throw a ThreadAbortException to
-            // prevent sending another response.
-            return null;
-        }
-
-        // CreateState
-        /// <summary>
-        /// The CreateState function will generate a state that can be
-        /// used to initialize the PlusWrapper.
-        /// </summary>
-        /// <param name="accessToken">An access token string from an
-        /// OAuth2 flow.</param>
-        /// <param name="refreshToken">A refresh token string from an
-        /// OAuth2 flow.</param>
-        /// <param name="issued">A DateTime object representing the time
-        /// that the token was issued.</param>
-        /// <param name="expires">A DateTime object indicating when the
-        /// token expires.</param>
-        /// <returns></returns>
-        static public IAuthorizationState CreateState(
-            string accessToken, string refreshToken, DateTime issued,
-            DateTime expires)
-        {
-            IAuthorizationState state = new AuthorizationState();
-            state.AccessToken = accessToken;
-            state.RefreshToken = refreshToken;
-            state.AccessTokenIssueDateUtc = issued;
-            state.AccessTokenExpirationUtc = expires;
-            return state;
-        }
-
         /// <summary>
         /// Implements IRouteHandler interface for mapping routes to this
         /// IHttpHandler.
@@ -347,20 +256,5 @@ namespace GPlusQuickstartCsharp
         }
 
         public bool IsReusable { get { return false; } }
-    }
-
-    /// <summary>
-    /// Encapsulates JSON data for ID token body.
-    /// </summary>
-    public class IDTokenJsonBodyObject
-    {
-        public string iss;
-        public string aud;
-        public string at_hash;
-        public string azp;
-        public string c_hash;
-        public string sub;
-        public int iat;
-        public int exp;
     }
 }
