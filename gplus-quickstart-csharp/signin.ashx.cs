@@ -28,9 +28,13 @@ using System.Web.SessionState;
 
 using Newtonsoft.Json;
 
+// TODO(class) Reorder, this gets messy with alt+shift+F10
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Util;
+using Google.Apis.Oauth2;
+using Google.Apis.Oauth2.v2;
+using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Plus.v1;
 using Google.Apis.Plus.v1.Data;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -153,8 +157,15 @@ namespace GPlusQuickstartCsharp
                     // Create an authorization state from the returned token.
                     context.Session["authState"] = token;
 
-                    //TODO: Verify token                    
-                    
+                    // Get tokeninfo for the access token if you want to verify.
+                    Oauth2Service service = new Oauth2Service(
+                        new Google.Apis.Services.BaseClientService.Initializer());
+                    Oauth2Service.TokeninfoRequest request = service.Tokeninfo();
+                    request.AccessToken = token.AccessToken;
+
+                    Tokeninfo info = request.Execute();
+
+                    string gplus_id = info.UserId;
                 }
                 else
                 {
@@ -190,7 +201,7 @@ namespace GPlusQuickstartCsharp
                 ps = new PlusService(
                     new Google.Apis.Services.BaseClientService.Initializer()
                     {
-                        ApplicationName = "Haiku+",
+                        ApplicationName = ".NET Quickstart",
                         HttpClientInitializer = credential
                     });
             }
