@@ -63,12 +63,12 @@ namespace GPlusQuickstartCsharp
             ClientId = "YOUR_CLIENT_ID",
             ClientSecret = "YOUR_CLIENT_SECRET"
         };
-        
+
         // Configuration that you probably don't need to change.
         static public string APP_NAME = "Google+ C# Quickstart";
-        
+
         // Stores token response info such as the access token and refresh token.
-        private TokenResponse token; 
+        private TokenResponse token;
 
         // Used to peform API calls against Google+.
         private PlusService ps = null;
@@ -211,8 +211,8 @@ namespace GPlusQuickstartCsharp
             if (context.Request.Path.Contains("/people"))
             {
                 // Get the PeopleFeed for the currently authenticated user.
-                IList<Person> pf= ps.People.List("me", 
-                        PeopleResource.ListRequest.CollectionEnum.Visible).Execute().Items;
+                PeopleFeed pf= ps.People.List("me",
+                        PeopleResource.ListRequest.CollectionEnum.Visible).Execute();
 
                 // This JSON, representing the people feed, will later be
                 // parsed by the JavaScript client.
