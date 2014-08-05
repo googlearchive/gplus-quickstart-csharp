@@ -37,6 +37,7 @@
 </head>
 <body>
   <div id="gConnect">
+    
     <button class="g-signin"
         data-scope="https://www.googleapis.com/auth/plus.login"
         data-requestvisibleactions="http://schemas.google.com/AddActivity"
@@ -46,6 +47,17 @@
         data-theme="dark"
         data-cookiepolicy="single_host_origin">
     </button>
+    <!-- Uncomment for retrieving email. -->
+    <!--
+    <button class="g-signin"
+        data-scope="https://www.googleapis.com/auth/plus.login email"
+        data-requestvisibleactions="http://schemas.google.com/AddActivity"
+        data-clientid="{{ CLIENT_ID }}"
+        data-accesstype="offline"
+        data-callback="onSignInCallback"
+        data-theme="dark"
+        data-cookiepolicy="single_host_origin"></button>
+    -->
   </div>
   <div id="authOps" style="display:none">
     <h2>User is now signed in to the app using Google+</h2>
@@ -121,6 +133,10 @@ var helper = (function() {
           if (profile.cover && profile.coverPhoto) {
             $('#profile').append(
                 $('<p><img src=\"' + profile.cover.coverPhoto.url + '\"></p>'));
+          }
+          if (profile.emails && profile.emails[0]) {
+              $('#profile').append(
+                  $('<p>Email: ' + profile.emails[0] + '</p>'));
           }
         });
       $('#authOps').show('slow');

@@ -67,6 +67,10 @@ namespace GPlusQuickstartCsharp
         // Configuration that you probably don't need to change.
         static public string APP_NAME = "Google+ C# Quickstart";
 
+        static public string[] SCOPES = { PlusService.Scope.PlusLogin };
+        // Uncomment to retrieve email.
+        //static public string[] SCOPES = { PlusService.Scope.PlusLogin, PlusService.Scope.UserinfoEmail };
+
         // Stores token response info such as the access token and refresh token.
         private TokenResponse token;
 
@@ -142,13 +146,13 @@ namespace GPlusQuickstartCsharp
                         context.Response.StatusCode = 401;
                         return;
                     }
-                    
+
                     // Use the code exchange flow to get an access and refresh token.
                     IAuthorizationCodeFlow flow =
                         new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
                         {
                             ClientSecrets = secrets,
-                            Scopes = new string[] { PlusService.Scope.PlusLogin }
+                            Scopes = SCOPES
                         });
 
                     token = flow.ExchangeCodeForTokenAsync("", code, "postmessage",
@@ -191,7 +195,7 @@ namespace GPlusQuickstartCsharp
                     new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
                     {
                         ClientSecrets = secrets,
-                        Scopes = new string[] { PlusService.Scope.PlusLogin }
+                        Scopes = SCOPES
                     });
 
                 UserCredential credential = new UserCredential(flow, "me", token);
