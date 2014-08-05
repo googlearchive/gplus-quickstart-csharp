@@ -37,7 +37,7 @@
 </head>
 <body>
   <div id="gConnect">
-    
+
     <button class="g-signin"
         data-scope="https://www.googleapis.com/auth/plus.login"
         data-requestvisibleactions="http://schemas.google.com/AddActivity"
@@ -134,9 +134,9 @@ var helper = (function() {
             $('#profile').append(
                 $('<p><img src=\"' + profile.cover.coverPhoto.url + '\"></p>'));
           }
-          if (profile.emails && profile.emails[0]) {
+          if (profile.emails && profile.emails[0] && profile.emails[0].value) {
               $('#profile').append(
-                  $('<p>Email: ' + profile.emails[0] + '</p>'));
+                  $('<p>Email: ' + profile.emails[0].value + '</p>'));
           }
         });
       $('#authOps').show('slow');
