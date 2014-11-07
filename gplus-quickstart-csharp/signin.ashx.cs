@@ -23,23 +23,22 @@ using System.Web;
 using System.Web.Compilation;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web.Routing;
 using System.Web.SessionState;
 
 using Newtonsoft.Json;
 
-// TODO(class) Reorder, this gets messy with alt+shift+F10
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Util;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Oauth2;
 using Google.Apis.Oauth2.v2;
 using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Plus.v1;
 using Google.Apis.Plus.v1.Data;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Auth.OAuth2.Flows;
-using System.Threading;
+using Google.Apis.Services;
+using Google.Apis.Util;
 
 namespace GPlusQuickstartCsharp
 {
