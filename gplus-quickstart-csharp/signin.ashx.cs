@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2013 Google Inc. All Rights Reserved.
+ * Copyright 2013-2014 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,23 +23,22 @@ using System.Web;
 using System.Web.Compilation;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web.Routing;
 using System.Web.SessionState;
 
 using Newtonsoft.Json;
 
-// TODO(class) Reorder, this gets messy with alt+shift+F10
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Util;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Oauth2;
 using Google.Apis.Oauth2.v2;
 using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Plus.v1;
 using Google.Apis.Plus.v1.Data;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Auth.OAuth2.Flows;
-using System.Threading;
+using Google.Apis.Services;
+using Google.Apis.Util;
 
 namespace GPlusQuickstartCsharp
 {
@@ -66,6 +65,10 @@ namespace GPlusQuickstartCsharp
 
         // Configuration that you probably don't need to change.
         static public string APP_NAME = "Google+ C# Quickstart";
+
+        static public string[] SCOPES = { PlusService.Scope.PlusLogin };
+        // Uncomment to retrieve email.
+        //static public string[] SCOPES = { PlusService.Scope.PlusLogin, PlusService.Scope.UserinfoEmail };
 
         // Stores token response info such as the access token and refresh token.
         private TokenResponse token;
@@ -142,13 +145,13 @@ namespace GPlusQuickstartCsharp
                         context.Response.StatusCode = 401;
                         return;
                     }
-                    
+
                     // Use the code exchange flow to get an access and refresh token.
                     IAuthorizationCodeFlow flow =
                         new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
                         {
                             ClientSecrets = secrets,
-                            Scopes = new string[] { PlusService.Scope.PlusLogin }
+                            Scopes = SCOPES
                         });
 
                     token = flow.ExchangeCodeForTokenAsync("", code, "postmessage",
@@ -191,7 +194,7 @@ namespace GPlusQuickstartCsharp
                     new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
                     {
                         ClientSecrets = secrets,
-                        Scopes = new string[] { PlusService.Scope.PlusLogin }
+                        Scopes = SCOPES
                     });
 
                 UserCredential credential = new UserCredential(flow, "me", token);

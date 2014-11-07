@@ -2,7 +2,7 @@
 
 /*
  *
- * Copyright 2013 Google Inc.
+ * Copyright 2013-2014 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@
 </head>
 <body>
   <div id="gConnect">
+
     <button class="g-signin"
         data-scope="https://www.googleapis.com/auth/plus.login"
         data-requestvisibleactions="http://schemas.google.com/AddActivity"
@@ -46,6 +47,17 @@
         data-theme="dark"
         data-cookiepolicy="single_host_origin">
     </button>
+    <!-- Uncomment for retrieving email. -->
+    <!--
+    <button class="g-signin"
+        data-scope="https://www.googleapis.com/auth/plus.login email"
+        data-requestvisibleactions="http://schemas.google.com/AddActivity"
+        data-clientid="{{ CLIENT_ID }}"
+        data-accesstype="offline"
+        data-callback="onSignInCallback"
+        data-theme="dark"
+        data-cookiepolicy="single_host_origin"></button>
+    -->
   </div>
   <div id="authOps" style="display:none">
     <h2>User is now signed in to the app using Google+</h2>
@@ -84,7 +96,8 @@ var helper = (function() {
     onSignInCallback: function(authResult) {
       $('#authResult').html('Auth Result:<br/>');
       for (var field in authResult) {
-        $('#authResult').append(' ' + field + ': ' + authResult[field] + '<br/>');
+          $('#authResult').append(' ' + field + ': ' +
+              JSON.stringify(authResult[field], undefined, 2) + '<br/>');
       }
       if (authResult['access_token']) {
         // The user is signed in
@@ -121,6 +134,10 @@ var helper = (function() {
           if (profile.cover && profile.coverPhoto) {
             $('#profile').append(
                 $('<p><img src=\"' + profile.cover.coverPhoto.url + '\"></p>'));
+          }
+          if (profile.emails && profile.emails[0] && profile.emails[0].value) {
+              $('#profile').append(
+                  $('<p>Email: ' + profile.emails[0].value + '</p>'));
           }
         });
       $('#authOps').show('slow');
