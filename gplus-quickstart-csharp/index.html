@@ -2,7 +2,7 @@
 
 /*
  *
- * Copyright 2013 Google Inc.
+ * Copyright 2013-2014 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ var helper = (function() {
     onSignInCallback: function(authResult) {
       $('#authResult').html('Auth Result:<br/>');
       for (var field in authResult) {
-          $('#authResult').append(' ' + field + ': ' + 
+          $('#authResult').append(' ' + field + ': ' +
               JSON.stringify(authResult[field], undefined, 2) + '<br/>');
       }
       if (authResult['access_token']) {
