@@ -14,21 +14,6 @@
  * limitations under the License.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Web;
-using System.Web.Compilation;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Web.Routing;
-using System.Web.SessionState;
-
-using Newtonsoft.Json;
-
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -39,6 +24,19 @@ using Google.Apis.Plus.v1;
 using Google.Apis.Plus.v1.Data;
 using Google.Apis.Services;
 using Google.Apis.Util;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Web;
+using System.Web.Compilation;
+using System.Web.Routing;
+using System.Web.SessionState;
 
 namespace GPlusQuickstartCsharp
 {
@@ -87,7 +85,6 @@ namespace GPlusQuickstartCsharp
             {
                 context.Response.RedirectPermanent("signin.ashx");
             }
-
 
             // This is reached when the root document is passed. Return HTML
             // using index.html as a template.
@@ -214,7 +211,7 @@ namespace GPlusQuickstartCsharp
             if (context.Request.Path.Contains("/people"))
             {
                 // Get the PeopleFeed for the currently authenticated user.
-                PeopleFeed pf= ps.People.List("me",
+                PeopleFeed pf = ps.People.List("me",
                         PeopleResource.ListRequest.CollectionEnum.Visible).Execute();
 
                 // This JSON, representing the people feed, will later be
@@ -233,12 +230,12 @@ namespace GPlusQuickstartCsharp
                 // Perform a get request to the token endpoint to revoke the
                 // refresh token.
                 token = (TokenResponse)context.Session["authState"];
-                string tokenToRevoke = (token.RefreshToken  != null) ?
+                string tokenToRevoke = (token.RefreshToken != null) ?
                     token.RefreshToken : token.AccessToken;
 
                 WebRequest request = WebRequest.Create(
                     "https://accounts.google.com/o/oauth2/revoke?token=" +
-                    token);
+                    tokenToRevoke);
 
                 WebResponse response = request.GetResponse();
 
